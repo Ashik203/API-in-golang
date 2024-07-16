@@ -16,6 +16,7 @@ func CreateUser(db *sql.DB) http.HandlerFunc {
 		var u controller.User
 
 		json.NewDecoder(r.Body).Decode(&u)
+
 		controller.Add(db, &u)
 
 		utils.SendData(w, u)
