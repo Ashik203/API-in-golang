@@ -36,5 +36,9 @@ func ConnDb(cfg Config) (*sql.DB, error) {
 		log.Fatalf("Failed to create table: %v", err)
 	}
 
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS books(book_id SERIAL primary key,title varchar(255) ,author varchar(255) , publishing_year int,genre varchar(255),available_copy int)")
+	if err != nil {
+		log.Fatal("failed to create table")
+	}
 	return db, err
 }

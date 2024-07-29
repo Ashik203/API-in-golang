@@ -1,19 +1,27 @@
 package user
 
-import (
-	"app/controller"
-	"app/web/utils"
-	"database/sql"
-	"log"
-	"net/http"
-)
+// import (
+// 	"app/controller"
+// 	"encoding/json"
+// 	"net/http"
+// 	"strconv"
 
-func GetUsers(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Request to get all users.")
+// 	"database/sql"
+// )
 
-		users, _ := controller.GetUsers(db)
+// func GetUsersPaginated(db *sql.DB) http.HandlerFunc {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		queryParams := r.URL.Query()
+// 		page, _ := strconv.Atoi(queryParams.Get("page"))
+// 		limit, _ := strconv.Atoi(queryParams.Get("limit"))
 
-		utils.SendData(w, users)
-	}
-}
+// 		users, err := controller.GetPaginatedUsers(db, page, limit)
+// 		if err != nil {
+// 			http.Error(w, "Failed to get users", http.StatusInternalServerError)
+// 			return
+// 		}
+
+// 		w.Header().Set("Content-Type", "application/json")
+// 		json.NewEncoder(w).Encode(users)
+// 	}
+// }
