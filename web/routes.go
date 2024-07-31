@@ -1,18 +1,16 @@
 package web
 
 import (
-	"app/web/user"
-	"database/sql"
+	"app/web/handlers"
 
 	"github.com/gorilla/mux"
 )
 
-func InitRoutes(router *mux.Router, dbase *sql.DB) {
-	//router.HandleFunc("/users", user.GetUsers(dbase)).Methods("GET")
-	router.HandleFunc("/users/{book_id}", user.GetOneBook(dbase)).Methods("GET")
-	// router.HandleFunc("/users", user.CreateUser(dbase)).Methods("POST")
-	router.HandleFunc("/users/{book_id}", user.DeleteBook(dbase)).Methods("DELETE")
-	router.HandleFunc("/users/{book_id}", user.UpdateBook(dbase)).Methods("PUT")
-	router.HandleFunc("/users", user.GetBooksPaginated(dbase)).Methods("GET")
-	router.HandleFunc("/users", user.CreateBook(dbase)).Methods("POST")
+func InitRoutes(r *mux.Router) {
+	r.HandleFunc("/users", handlers.GetBooks).Methods("GET")
+	r.HandleFunc("/users", handlers.CreateBook).Methods("POST")
+	r.HandleFunc("/users/{book_id}", handlers.GetOneBook).Methods("GET")
+	r.HandleFunc("/users/{book_id}", handlers.UpdateBook).Methods("PUT")
+	r.HandleFunc("/users/{book_id}", handlers.DeleteBook).Methods("DELETE")
+
 }

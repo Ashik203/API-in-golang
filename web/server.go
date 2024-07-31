@@ -17,14 +17,22 @@ func RunServer() {
 
 	db, err := config.ConnDb(cfg)
 	if err != nil {
+		fmt.Println("Can't read data from Config FILE")
 		log.Fatal(err)
 	}
 
 	defer db.Close()
 
-	router := mux.NewRouter()
-	InitRoutes(router, db)
-
 	formatString := fmt.Sprintf(":%d", cfg.Port)
-	log.Fatal(http.ListenAndServe(formatString, router))
+
+	mux := mux.NewRouter()
+	InitRoutes(mux)
+
+	err = http.ListenAndServe(formatString, mux)
+
+	if err != nil {
+		log.Printf("Server failed to start: %v", err)
+		log.Fatal(err)
+	}
+
 }
