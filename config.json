@@ -1,0 +1,10 @@
+{
+    "port": 8090,
+    "db": {
+        "host": "go_db",
+        "port": 5432,
+        "name": "Api",
+        "user": "root",
+        "pass": "admin"
+    }
+}
