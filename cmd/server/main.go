@@ -1,7 +1,12 @@
 package main
 
-import "app/web"
+import (
+	"app/apps"
+)
 
 func main() {
-	web.RunServer()
+	app := apps.NewApplication()
+	// app.Init()
+	app.Run()
+	app.Wait()
 }

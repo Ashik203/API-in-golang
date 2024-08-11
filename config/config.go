@@ -12,3 +12,13 @@ type Config struct {
 	Port int `json:"port"`
 	Db   DB  `json:"db"`
 }
+
+var config *Config
+
+func init() {
+	config = &Config{}
+}
+
+func GetConfig() Config {
+	return *config
+}

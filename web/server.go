@@ -2,31 +2,34 @@ package web
 
 import (
 	"app/config"
-	"app/db"
 	"fmt"
 	"log"
 	"net/http"
+	"sync"
 )
 
-func RunServer() {
+func RunServer(wg *sync.WaitGroup) {
+	mux := http.NewServeMux()
+	InitRoutes(mux)
+
+	wg.Add(1)
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
+	// db, err := db.ConnDb(cfg)
+	// if err != nil {
+	// 	log.Fatalf("Failed to connect to database: %v", err)
+	// }
+	// defer db.Close()
 
-	db, err := db.ConnDb(cfg)
-	if err != nil {
-		fmt.Println("Can't read data from Config FILE")
-		log.Fatal(err)
-	}
-
-	defer db.Close()
+	// go func() {
 
 	formatString := fmt.Sprintf(":%d", cfg.Port)
 
-	mux := http.NewServeMux()
-
-	InitRoutes(mux)
 	log.Fatal(http.ListenAndServe(formatString, mux))
+	defer wg.Done()
+
+	// }()
 }

@@ -210,7 +210,6 @@ func ReadOneBook(id int) (Book, error) {
 			return book, errors.New("no book found")
 		}
 		return book, err
-
 	}
 
 	return book, nil
