@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Book struct {
@@ -15,6 +16,13 @@ type Book struct {
 	PublishingYear int    `json:"publishing_year"`
 	Genre          string `json:"genre"`
 	AvailableCopy  int    `json:"available_copy"`
+}
+
+type User struct {
+	UserID   int    `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type PaginatedBooks struct {
@@ -110,11 +118,38 @@ func AddBook(b *Book) error {
 
 	if err != nil {
 		if err != sql.ErrNoRows {
-			return errors.New("no user found")
+			return errors.New("no book found")
 		}
 		return err
 	}
 	err = Db.QueryRow(addQuery, args...).Scan(&b.BookID)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return errors.New("no book found")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func AddUser(b *User) error {
+	InitQueryBuilder()
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(b.Password), bcrypt.DefaultCost)
+	if err != nil {
+		fmt.Println("Can not hash password")
+	}
+
+	addQuery, args, err := GetQueryBuilder().Insert("users").Columns("username", "email", "password").Values(b.Username, b.Email, string(hashedPassword)).Suffix("Returning user_id").ToSql()
+
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return errors.New("no user found")
+		}
+		return err
+	}
+	err = Db.QueryRow(addQuery, args...).Scan(&b.UserID)
 	if err != nil {
 		if err != sql.ErrNoRows {
 			return errors.New("no user found")
@@ -125,6 +160,39 @@ func AddBook(b *Book) error {
 	return nil
 }
 
+func ReadOneBook(id int) (Book, error) {
+	var book Book
+
+	InitQueryBuilder()
+
+	selectQuery, args, err := GetQueryBuilder().Select("book_id", "title", "author", "publishing_year", "genre", "available_copy").
+		From("books").
+		Where(squirrel.Eq{"book_id": id}).
+		ToSql()
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return book, errors.New("no book found")
+		}
+		return book, err
+
+	}
+	err = Db.QueryRow(selectQuery, args...).Scan(&book.BookID, &book.Tittle, &book.Author, &book.PublishingYear, &book.Genre, &book.AvailableCopy)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return book, errors.New("no book found with the given ID")
+		}
+		return book, fmt.Errorf("error executing query: %w", err)
+	}
+	_, err = Db.Exec(selectQuery, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return book, errors.New("no book found")
+		}
+		return book, err
+	}
+
+	return book, nil
+}
 func Delete(id int) (Book, error) {
 	var book Book
 
@@ -182,35 +250,35 @@ func Update(id int, b *Book) (Book, error) {
 	return book, nil
 }
 
-func ReadOneBook(id int) (Book, error) {
-	var book Book
+func ReadOneUser(id int) (User, error) {
+	var user User
 
 	InitQueryBuilder()
-	selectQuery, args, err := GetQueryBuilder().Select("book_id", "title", "author", "publishing_year", "genre", "available_copy").
-		From("books").
-		Where(squirrel.Eq{"book_id": id}).
+	selectQuery, args, err := GetQueryBuilder().Select("user_id", "username", "email", "password").
+		From("users").
+		Where(squirrel.Eq{"user_id": id}).
 		ToSql()
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return book, errors.New("no book found")
+			return user, errors.New("no user found")
 		}
-		return book, err
+		return user, err
 
 	}
-	err = Db.QueryRow(selectQuery, args...).Scan(&book.BookID, &book.Tittle, &book.Author, &book.PublishingYear, &book.Genre, &book.AvailableCopy)
+	err = Db.QueryRow(selectQuery, args...).Scan(&user.UserID, &user.Username, &user.Email, &user.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return book, errors.New("no book found with the given ID")
+			return user, errors.New("no user found with the given id")
 		}
-		return book, fmt.Errorf("error executing query: %w", err)
+		return user, fmt.Errorf("error executing query: %w", err)
 	}
 	_, err = Db.Exec(selectQuery, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return book, errors.New("no book found")
+			return user, errors.New("no user found")
 		}
-		return book, err
+		return user, err
 	}
 
-	return book, nil
+	return user, nil
 }

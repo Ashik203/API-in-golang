@@ -2,6 +2,7 @@ package web
 
 import (
 	"app/config"
+	"app/db"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,11 +19,11 @@ func RunServer(wg *sync.WaitGroup) {
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
-	// db, err := db.ConnDb(cfg)
-	// if err != nil {
-	// 	log.Fatalf("Failed to connect to database: %v", err)
-	// }
-	// defer db.Close()
+	db, err := db.ConnDb(cfg)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer db.Close()
 
 	// go func() {
 

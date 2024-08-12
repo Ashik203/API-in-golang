@@ -16,8 +16,12 @@ func ConnDb(cfg config.Config) (*sql.DB, error) {
 	if err != nil {
 		fmt.Println("Error in Initialing the POSTGRES")
 		log.Fatal(err)
+
+
 	}
-	_, err = Db.Exec("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT, password TEXT)")
+
+	
+	_, err = Db.Exec("CREATE TABLE IF NOT EXISTS users (user_id SERIAL primary key,username TEXT, email TEXT, password TEXT)")
 	if err != nil {
 		log.Fatalf("Failed to create table: %v", err)
 	}

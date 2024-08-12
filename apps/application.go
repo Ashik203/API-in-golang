@@ -1,7 +1,6 @@
 package apps
 
 import (
-	"app/db"
 	"app/web"
 	"sync"
 )
@@ -14,10 +13,9 @@ func NewApplication() *Application {
 	return &Application{}
 }
 
-func (app *Application) Init() {
-	db.ConnectDb()
-
-}
+// func (app *Application) Init() {
+// 	db.ConnectDb()
+// }
 
 func (app *Application) Run() {
 	web.RunServer(&app.wg)
