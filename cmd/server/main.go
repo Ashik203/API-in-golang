@@ -6,7 +6,8 @@ import (
 
 func main() {
 	app := apps.NewApplication()
-	// app.Init()
+	app.Init()
 	app.Run()
 	app.Wait()
+	app.Cleanup()
 }
