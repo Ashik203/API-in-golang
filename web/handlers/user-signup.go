@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func SignUp(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Requesting to create user.")
 	var b db.User
 

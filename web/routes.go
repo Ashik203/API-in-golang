@@ -7,18 +7,13 @@ import (
 )
 
 func InitRoutes(mux *http.ServeMux) {
-
-	mux.Handle("GET /users", http.HandlerFunc(handlers.GetBooks))
-	mux.Handle("POST /books", http.HandlerFunc(handlers.CreateBook))
-
+	mux.Handle("POST /users", http.HandlerFunc(handlers.SignUp))
+	mux.Handle("POST /userlogin", http.HandlerFunc(handlers.Login))
+	mux.Handle("GET /books", http.HandlerFunc(handlers.GetBooks))
 	mux.Handle("GET /books/{book_id}", http.HandlerFunc(handlers.GetOneBook))
-	mux.Handle("PUT /users/{book_id}", http.HandlerFunc(handlers.UpdateBook))
-	// mux.Handle("DELETE /users/{book_id}",http.HandlerFunc(handlers.DeleteBook))
 
+	mux.Handle("GET /users/{user_id}", jwt.JwtMiddleware(http.HandlerFunc(handlers.GetOneUser)))
+	mux.Handle("POST /books", jwt.JwtMiddleware(http.HandlerFunc(handlers.CreateBook)))
+	mux.Handle("PUT /users/{book_id}", jwt.JwtMiddleware(http.HandlerFunc(handlers.UpdateBook)))
 	mux.Handle("DELETE /users/{book_id}", jwt.JwtMiddleware(http.HandlerFunc(handlers.DeleteBook)))
-
-	mux.Handle("POST /users", http.HandlerFunc(handlers.CreateUser))
-	mux.Handle("GET /users/{user_id}", http.HandlerFunc(handlers.GetOneUser))
-	mux.Handle("POST /userlogin", http.HandlerFunc(handlers.UserLogin))
-
 }

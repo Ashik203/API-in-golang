@@ -11,7 +11,7 @@ import (
 
 func DeleteBook(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Request to delete book.")
-	
+
 	idStr := r.URL.Path[len("/users/"):]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {

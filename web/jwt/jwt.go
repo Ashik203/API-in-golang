@@ -57,7 +57,7 @@ func JwtMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		cookie := r.Header.Get("token")
 
-		fmt.Println("Value of JWT token is", cookie)
+		// fmt.Println("Value of JWT token is", cookie)
 
 		if !ValidateJWT(w, cookie) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -102,11 +102,11 @@ func ValidateJWT(w http.ResponseWriter, token string) bool {
 		return false
 	}
 
-	fmt.Fprintln(w, "token validate for: ", claims.Username)
+	// fmt.Fprintln(w, "token validate for: ", claims.Username)
 	WhoseToken = claims.Username
 
-	fmt.Fprintln(w, "token expires on: ", claims.Exp)
-	fmt.Fprintln(w, "time now is: ", time.Now().Unix())
+	// fmt.Fprintln(w, "token expires on: ", claims.Exp)
+	// fmt.Fprintln(w, "time now is: ", time.Now().Unix())
 	return true
 
 }

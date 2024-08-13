@@ -26,7 +26,7 @@ type User struct {
 }
 
 type PaginatedBooks struct {
-	Books       []Book `json:"users"`
+	Books       []Book `json:"books"`
 	TotalPage   int    `json:"total_page"`
 	TotalItems  int    `json:"total_items"`
 	Limit       int    `json:"limit"`
