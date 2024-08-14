@@ -2,30 +2,37 @@ package config
 
 import (
 	"encoding/json"
-	"fmt"
+	"flag"
+	"log/slog"
 	"os"
 
+	"github.com/go-playground/validator"
 	_ "github.com/lib/pq"
 )
 
-var filename = "/home/ashikurrahman/API/config.json"
+var confFlag = flag.String("c", "/home/ashikurrahman/Documents/API-in-golang/config.json", "Configuration file path")
 
-func LoadConfig() (Config, error) {
-	var config Config
+func LoadConfig() error {
+	flag.Parse()
+	var data []byte
+	var err error
 
-	configFile, err := os.Open(filename)
-	if err != nil {
-		fmt.Println("Error in Reading the config file")
-		return config, err
+	exit := func(err error) {
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
-	defer configFile.Close()
-
-	jsonParser := json.NewDecoder(configFile)
-	err = jsonParser.Decode(&config)
-	if err != nil {
-		fmt.Println("Error in Parsing the config file")
+	if data, err = os.ReadFile(*confFlag); err != nil {
+		exit(err)
 	}
 
-	return config, err
+	if err = json.Unmarshal(data, &config); err != nil {
+		exit(err)
+	}
+
+	v := validator.New()
+	if err = v.Struct(config); err != nil {
+		exit(err)
+	}
+	return nil
 }

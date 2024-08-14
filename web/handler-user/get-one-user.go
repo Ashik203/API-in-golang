@@ -1,4 +1,4 @@
-package handlers
+package handleruser
 
 import (
 	"app/db"
@@ -10,13 +10,13 @@ import (
 	"strconv"
 )
 
-func GetOneBook(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Request to get book by id.")
+func GetOneUser(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Request to get user by id.")
 
 	idStr := r.URL.Path[len("/users/"):]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		slog.Error("Can't get user id for get book by id", logger.Extra(map[string]any{
+		slog.Error("failed to convert id", logger.Extra(map[string]any{
 			"error":   err.Error(),
 			"payload": id,
 		}))
@@ -24,9 +24,9 @@ func GetOneBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := db.ReadOneBook(id)
+	user, err := db.ReadOneUser(id)
 	if err != nil {
-		slog.Error("Can't get book by id", logger.Extra(map[string]any{
+		slog.Error("failed to get book by id", logger.Extra(map[string]any{
 			"error":   err.Error(),
 			"payload": user,
 		}))

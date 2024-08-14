@@ -1,10 +1,25 @@
 {
-    "port": 8090,
+    "mode" : "debug",
+    "service_name": "api",
+    "http_port": 8090,
     "db": {
-        "host": "go_db",
-        "port": 5432,
-        "name": "Api",
-        "user": "root",
-        "pass": "admin"
+        "read": {
+            "host": "localhost",
+            "port": 5432,
+            "name": "api-db",
+            "user": "root",
+            "pass": "admin",
+            "max_idle_time_in_minute": 60,
+            "enable_ssl_mode": false
+        },
+        "write": {
+            "host": "localhost",
+            "port": 5432,
+            "name": "api-db",
+            "user": "root",
+            "pass": "admin",
+            "max_idle_time_in_minute": 60,
+            "enable_ssl_mode": false
+        }
     }
 }

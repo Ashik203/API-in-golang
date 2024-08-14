@@ -1,7 +1,10 @@
 package apps
 
 import (
+	"app/config"
+	"app/db"
 	"app/web"
+	"app/web/utils"
 	"sync"
 )
 
@@ -13,10 +16,12 @@ func NewApplication() *Application {
 	return &Application{}
 }
 
-// func (app *Application) Init() {
-// 	db.ConnectDb()
-// }
-
+func (app *Application) Init() {
+	config.LoadConfig()
+	config.GetConfig()
+	db.InitDB()
+	utils.InitValidator()
+}
 func (app *Application) Run() {
 	web.RunServer(&app.wg)
 
@@ -24,4 +29,8 @@ func (app *Application) Run() {
 
 func (app *Application) Wait() {
 	app.wg.Wait()
+}
+
+func (app *Application) Cleanup() {
+	db.CloseDB()
 }

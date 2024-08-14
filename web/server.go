@@ -2,35 +2,29 @@ package web
 
 import (
 	"app/config"
-	"app/db"
+	"app/web/middlerware"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"sync"
 )
 
 func RunServer(wg *sync.WaitGroup) {
 	mux := http.NewServeMux()
-	InitRoutes(mux)
+	manager := middlerware.NewManager()
 
+	InitRoutes(mux, manager)
 	wg.Add(1)
 
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
-	}
-	db, err := db.ConnDb(cfg)
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
-	}
-	defer db.Close()
+	go func() {
+		defer wg.Done()
 
-	// go func() {
+		conf := config.GetConfig()
+		addr := fmt.Sprintf(":%d", conf.HttpPort)
 
-	formatString := fmt.Sprintf(":%d", cfg.Port)
-
-	log.Fatal(http.ListenAndServe(formatString, mux))
-	defer wg.Done()
-
-	// }()
+		slog.Info(fmt.Sprintf("Listening at %s", addr))
+		if err := http.ListenAndServe(addr, mux); err != nil {
+			slog.Error(err.Error())
+		}
+	}()
 }

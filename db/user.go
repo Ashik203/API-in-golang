@@ -10,7 +10,7 @@ import (
 )
 
 type Book struct {
-	BookID         int    `json:"id" `
+	BookID         int    `json:"id"`
 	Tittle         string `json:"tittle"`
 	Author         string `json:"author"`
 	PublishingYear int    `json:"publishing_year"`
@@ -47,14 +47,12 @@ func ReadBooks(page int, limit int, sortBy string, sortKey string, filter string
 
 	offset := (page - 1) * limit
 
-	InitQueryBuilder()
-
 	countQuery, args, err := GetQueryBuilder().Select("COUNT(*)").From("books").ToSql()
 	if err != nil {
 		return paginatedBooks, errors.New("failed to execute query")
-
 	}
-	err = Db.QueryRow(countQuery, args...).Scan(&totalItems)
+
+	err = WriteDb.QueryRow(countQuery, args...).Scan(&totalItems)
 	if err != nil {
 		return paginatedBooks, errors.New("failed to get total count of books")
 	}
@@ -69,7 +67,6 @@ func ReadBooks(page int, limit int, sortBy string, sortKey string, filter string
 
 	if searchValue != "" {
 		selectQuery = selectQuery.Where(squirrel.Like{"author": "%" + searchValue + "%"})
-
 	}
 	selectQuery = selectQuery.OrderBy(fmt.Sprintf("%s %s", sortBy, sortKey)).Limit(uint64(limit)).Offset(uint64(offset))
 
@@ -78,7 +75,7 @@ func ReadBooks(page int, limit int, sortBy string, sortKey string, filter string
 		return paginatedBooks, fmt.Errorf("failed to build query: %w", err)
 	}
 
-	rows, err := Db.Query(query, args...)
+	rows, err := WriteDb.Query(query, args...)
 	if err != nil {
 		return paginatedBooks, errors.New("failed to execute query")
 	}
@@ -90,7 +87,6 @@ func ReadBooks(page int, limit int, sortBy string, sortKey string, filter string
 		if err := rows.Scan(&book.BookID, &book.Tittle, &book.Author, &book.PublishingYear, &book.Genre, &book.AvailableCopy); err != nil {
 			return paginatedBooks, errors.New("failed to scan rows")
 		}
-
 		books = append(books, book)
 	}
 
@@ -112,91 +108,99 @@ func ReadBooks(page int, limit int, sortBy string, sortKey string, filter string
 }
 
 func AddBook(b *Book) error {
-	InitQueryBuilder()
-
-	addQuery, args, err := GetQueryBuilder().Insert("books").Columns("title", "author", "publishing_year", "genre", "available_copy").Values(b.Tittle, b.Author, b.PublishingYear, b.Genre, b.AvailableCopy).Suffix("Returning book_id").ToSql()
+	addQuery, args, err := GetQueryBuilder().
+		Insert("books").
+		Columns("title", "author", "publishing_year", "genre", "available_copy").
+		Values(b.Tittle, b.Author, b.PublishingYear, b.Genre, b.AvailableCopy).
+		Suffix("Returning book_id").
+		ToSql()
 
 	if err != nil {
 		if err != sql.ErrNoRows {
-			return errors.New("no book found")
-		}
-		return err
-	}
-	err = Db.QueryRow(addQuery, args...).Scan(&b.BookID)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			return errors.New("no book found")
+			return err
 		}
 		return err
 	}
 
-	return nil
+	err = WriteDb.QueryRow(addQuery, args...).Scan(&b.BookID)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return err
+		}
+
+		return err
+	}
+
+	return err
 }
 
-func AddUser(b *User) error {
-	InitQueryBuilder()
-
+func SignUp(b *User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(b.Password), bcrypt.DefaultCost)
 	if err != nil {
-		fmt.Println("Can not hash password")
-	}
-
-	addQuery, args, err := GetQueryBuilder().Insert("users").Columns("username", "email", "password").Values(b.Username, b.Email, string(hashedPassword)).Suffix("Returning user_id").ToSql()
-
-	if err != nil {
-		if err != sql.ErrNoRows {
-			return errors.New("no user found")
-		}
-		return err
-	}
-	err = Db.QueryRow(addQuery, args...).Scan(&b.UserID)
-	if err != nil {
-		if err != sql.ErrNoRows {
-			return errors.New("no user found")
-		}
 		return err
 	}
 
-	return nil
+	addQuery, args, err := GetQueryBuilder().
+		Insert("users").
+		Columns("username", "email", "password").
+		Values(b.Username, b.Email, string(hashedPassword)).
+		Suffix("Returning user_id").
+		ToSql()
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return err
+		}
+
+		return err
+	}
+
+	err = WriteDb.QueryRow(addQuery, args...).Scan(&b.UserID)
+	if err != nil {
+		return err
+	}
+
+	return err
 }
 
 func ReadOneBook(id int) (Book, error) {
 	var book Book
 
-	InitQueryBuilder()
-
-	selectQuery, args, err := GetQueryBuilder().Select("book_id", "title", "author", "publishing_year", "genre", "available_copy").
+	selectQuery, args, err := GetQueryBuilder().
+		Select("book_id", "title", "author", "publishing_year", "genre", "available_copy").
 		From("books").
 		Where(squirrel.Eq{"book_id": id}).
 		ToSql()
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return book, errors.New("no book found")
+			return book, err
 		}
-		return book, err
 
-	}
-	err = Db.QueryRow(selectQuery, args...).Scan(&book.BookID, &book.Tittle, &book.Author, &book.PublishingYear, &book.Genre, &book.AvailableCopy)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return book, errors.New("no book found with the given ID")
-		}
-		return book, fmt.Errorf("error executing query: %w", err)
-	}
-	_, err = Db.Exec(selectQuery, args...)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return book, errors.New("no book found")
-		}
 		return book, err
 	}
 
-	return book, nil
+	err = WriteDb.QueryRow(selectQuery, args...).
+		Scan(&book.BookID, &book.Tittle, &book.Author, &book.PublishingYear, &book.Genre, &book.AvailableCopy)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return book, err
+		}
+
+		return book, err
+	}
+
+	_, err = WriteDb.Exec(selectQuery, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return book, err
+		}
+		return book, err
+	}
+
+	return book, err
 }
+
 func Delete(id int) (Book, error) {
 	var book Book
-
-	InitQueryBuilder()
 
 	query, args, err := GetQueryBuilder().
 		Select("book_id", "title", "author", "publishing_year", "genre", "available_copy").
@@ -205,78 +209,110 @@ func Delete(id int) (Book, error) {
 		ToSql()
 
 	if err != nil {
-		return book, fmt.Errorf("error building query: %w", err)
+		return book, err
 	}
 
-	err = Db.QueryRow(query, args...).Scan(&book.BookID, &book.Tittle, &book.Author, &book.PublishingYear, &book.Genre, &book.AvailableCopy)
+	err = WriteDb.QueryRow(query, args...).
+		Scan(&book.BookID, &book.Tittle, &book.Author, &book.PublishingYear, &book.Genre, &book.AvailableCopy)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return book, errors.New("no book found with the given ID")
+			return book, err
 		}
-		return book, fmt.Errorf("error executing query: %w", err)
+		return book, err
 	}
 
-	deleteQuery, args, err := GetQueryBuilder().Delete("*").From("books").Where(squirrel.Eq{"book_id": id}).ToSql()
-	if err != nil {
-		return book, fmt.Errorf("error building query: %w", err)
-	}
-
-	_, err = Db.Exec(deleteQuery, args...)
+	deleteQuery, args, err := GetQueryBuilder().
+		Delete("*").
+		From("books").
+		Where(squirrel.Eq{"book_id": id}).
+		ToSql()
 	if err != nil {
 		return book, err
 	}
 
-	return book, nil
+	_, err = WriteDb.Exec(deleteQuery, args...)
+	if err != nil {
+		return book, err
+	}
+
+	return book, err
 }
 
 func Update(id int, b *Book) (Book, error) {
 	var book Book
-
-	InitQueryBuilder()
-	updateQuery, args, err := GetQueryBuilder().Update("books").Set("title", b.Tittle).Set("author", b.Author).Set("publishing_year", b.PublishingYear).Set("genre", b.Genre).Set("available_copy", b.AvailableCopy).Where(squirrel.Eq{"book_id": id}).ToSql()
+	query, args, err := GetQueryBuilder().
+		Select("book_id", "title", "author", "publishing_year", "genre", "available_copy").
+		From("books").
+		Where(squirrel.Eq{"book_id": id}).
+		ToSql()
 
 	if err != nil {
+		return book, err
+	}
+
+	err = WriteDb.QueryRow(query, args...).Scan(&book.BookID, &book.Tittle, &book.Author, &book.PublishingYear, &book.Genre, &book.AvailableCopy)
+	if err != nil {
 		if err == sql.ErrNoRows {
-			return book, errors.New("no book found")
+			return book, err
 		}
 		return book, err
 	}
 
-	_, err = Db.Exec(updateQuery, args...)
+	updateQuery, args, err := GetQueryBuilder().
+		Update("books").
+		Set("title", b.Tittle).
+		Set("author", b.Author).
+		Set("publishing_year", b.PublishingYear).
+		Set("genre", b.Genre).
+		Set("available_copy", b.AvailableCopy).
+		Where(squirrel.Eq{"book_id": id}).
+		ToSql()
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return book, err
+		}
+		return book, err
+	}
+
+	_, err = WriteDb.Exec(updateQuery, args...)
 	if err != nil {
 		return book, err
 	}
 
-	return book, nil
+	return book, err
 }
 
 func ReadOneUser(id int) (User, error) {
 	var user User
 
-	InitQueryBuilder()
-	selectQuery, args, err := GetQueryBuilder().Select("user_id", "username", "email", "password").
+	selectQuery, args, err := GetQueryBuilder().
+		Select("user_id", "username", "email", "password").
 		From("users").
 		Where(squirrel.Eq{"user_id": id}).
 		ToSql()
+
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return user, errors.New("no user found")
+			return user, err
 		}
 		return user, err
+	}
 
-	}
-	err = Db.QueryRow(selectQuery, args...).Scan(&user.UserID, &user.Username, &user.Email, &user.Password)
+	err = WriteDb.QueryRow(selectQuery, args...).Scan(&user.UserID, &user.Username, &user.Email, &user.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return user, errors.New("no user found with the given id")
+			return user, err
 		}
-		return user, fmt.Errorf("error executing query: %w", err)
+		return user, err
 	}
-	_, err = Db.Exec(selectQuery, args...)
+
+	_, err = WriteDb.Exec(selectQuery, args...)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return user, errors.New("no user found")
+			return user, err
 		}
+
 		return user, err
 	}
 

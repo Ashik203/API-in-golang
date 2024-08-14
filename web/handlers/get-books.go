@@ -2,7 +2,9 @@ package handlers
 
 import (
 	"app/db"
+	"app/logger"
 	"app/web/utils"
+	"log/slog"
 	"net/http"
 )
 
@@ -11,7 +13,11 @@ func GetBooks(w http.ResponseWriter, r *http.Request) {
 
 	paginatedBooks, err := db.ReadBooks(paginationParams.Page, paginationParams.Limit, paginationParams.SortBy, paginationParams.SortOrder, paginationParams.FilterBy, paginationParams.FilterValue, paginationParams.SearchBy, paginationParams.SearchValue)
 	if err != nil {
-		http.Error(w, "Failed to get books", http.StatusInternalServerError)
+		slog.Error("Can't get all books", logger.Extra(map[string]any{
+			"error":   err.Error(),
+			"payload": paginatedBooks,
+		}))
+		utils.SendError(w, http.StatusInternalServerError, err.Error(), paginatedBooks)
 		return
 	}
 

@@ -1,19 +1,76 @@
 package web
 
 import (
+	handleruser "app/web/handler-user"
 	"app/web/handlers"
-	"app/web/jwt"
+	"app/web/middlerware"
 	"net/http"
 )
 
-func InitRoutes(mux *http.ServeMux) {
-	mux.Handle("POST /users", http.HandlerFunc(handlers.SignUp))
-	mux.Handle("POST /userlogin", http.HandlerFunc(handlers.Login))
-	mux.Handle("GET /books", http.HandlerFunc(handlers.GetBooks))
-	mux.Handle("GET /books/{book_id}", http.HandlerFunc(handlers.GetOneBook))
+func InitRoutes(mux *http.ServeMux, manager *middlerware.Manager) {
+	mux.Handle(
+		"POST /users/signup",
+		manager.With(
+			http.HandlerFunc(handleruser.SignUp),
+		),
+	)
 
-	mux.Handle("GET /users/{user_id}", jwt.JwtMiddleware(http.HandlerFunc(handlers.GetOneUser)))
-	mux.Handle("POST /books", jwt.JwtMiddleware(http.HandlerFunc(handlers.CreateBook)))
-	mux.Handle("PUT /users/{book_id}", jwt.JwtMiddleware(http.HandlerFunc(handlers.UpdateBook)))
-	mux.Handle("DELETE /users/{book_id}", jwt.JwtMiddleware(http.HandlerFunc(handlers.DeleteBook)))
+	mux.Handle(
+		"POST /users/verify",
+		manager.With(
+			http.HandlerFunc(handleruser.VerifySignUp),
+		),
+	)
+
+	mux.Handle(
+		"POST /users/login",
+		manager.With(
+			http.HandlerFunc(handleruser.Login),
+		),
+	)
+
+	mux.Handle(
+		"GET /books",
+		manager.With(
+			http.HandlerFunc(handlers.GetBooks),
+		),
+	)
+	
+	mux.Handle(
+		"GET /books/{book_id}",
+		manager.With(
+			http.HandlerFunc(handlers.GetOneBook),
+		),
+	)
+
+	mux.Handle(
+		"GET /users/{user_id}",
+		manager.With(
+			http.HandlerFunc(handleruser.GetOneUser),
+			middlerware.JwtMiddleware,
+		),
+	)
+
+	mux.Handle(
+		"POST /books",
+		manager.With(
+			http.HandlerFunc(handlers.CreateBook),
+			middlerware.JwtMiddleware,
+		),
+	)
+	mux.Handle(
+		"PUT /books/{book_id}",
+		manager.With(
+			http.HandlerFunc(handlers.UpdateBook),
+			middlerware.JwtMiddleware,
+		),
+	)
+
+	mux.Handle(
+		"DELETE /books/{book_id}",
+		manager.With(
+			http.HandlerFunc(handlers.DeleteBook),
+			middlerware.JwtMiddleware,
+		),
+	)
 }
