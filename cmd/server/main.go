@@ -1,11 +1,11 @@
 package main
 
 import (
-	"app/apps"
+	"app/app"
 )
 
 func main() {
-	app := apps.NewApplication()
+	app := app.NewApplication()
 	app.Init()
 	app.Run()
 	app.Wait()
