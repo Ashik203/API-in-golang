@@ -34,5 +34,6 @@ func LoadConfig() error {
 	if err = v.Struct(config); err != nil {
 		exit(err)
 	}
+	
 	return nil
 }

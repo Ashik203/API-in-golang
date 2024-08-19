@@ -21,10 +21,11 @@ const DebugMode = Mode("debug")
 const ReleaseMode = Mode("release")
 
 type Config struct {
-	Mode        Mode   `json:"mode"  validate:"required"`
-	ServiceName string `json:"service_name"  validate:"required"`
-	HttpPort    int    `json:"http_port"`
-	DB          DB     `json:"db"  validate:"required"`
+	Mode         Mode   `json:"mode,omitempty" validate:"required"`
+	ServiceName  string `json:"service_name,omitempty" validate:"required"`
+	HttpPort     int    `json:"http_port,omitempty"`
+	JwtSecretKey string `json:"jwt_secret_key"`
+	DB           DB     `json:"db,omitempty" validate:"required"`
 }
 
 var config *Config

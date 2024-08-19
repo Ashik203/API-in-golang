@@ -35,7 +35,7 @@ func parseLimit(r *http.Request) int {
 	return int(limit)
 }
 
-var defaultSortBy = "book_id"
+var defaultSortBy = "id"
 var defaultSortOrder = "asc"
 
 func GetPaginationParams(r *http.Request) PaginationParams {

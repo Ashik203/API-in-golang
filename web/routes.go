@@ -1,7 +1,6 @@
 package web
 
 import (
-	handleruser "app/web/handler-user"
 	"app/web/handlers"
 	"app/web/middlerware"
 	"net/http"
@@ -11,21 +10,21 @@ func InitRoutes(mux *http.ServeMux, manager *middlerware.Manager) {
 	mux.Handle(
 		"POST /users/signup",
 		manager.With(
-			http.HandlerFunc(handleruser.SignUp),
+			http.HandlerFunc(handlers.SignUp),
 		),
 	)
 
 	mux.Handle(
 		"POST /users/verify",
 		manager.With(
-			http.HandlerFunc(handleruser.VerifySignUp),
+			http.HandlerFunc(handlers.VerifySignUp),
 		),
 	)
 
 	mux.Handle(
 		"POST /users/login",
 		manager.With(
-			http.HandlerFunc(handleruser.Login),
+			http.HandlerFunc(handlers.Login),
 		),
 	)
 
@@ -35,7 +34,7 @@ func InitRoutes(mux *http.ServeMux, manager *middlerware.Manager) {
 			http.HandlerFunc(handlers.GetBooks),
 		),
 	)
-	
+
 	mux.Handle(
 		"GET /books/{book_id}",
 		manager.With(
@@ -46,7 +45,7 @@ func InitRoutes(mux *http.ServeMux, manager *middlerware.Manager) {
 	mux.Handle(
 		"GET /users/{user_id}",
 		manager.With(
-			http.HandlerFunc(handleruser.GetOneUser),
+			http.HandlerFunc(handlers.GetOneUser),
 			middlerware.JwtMiddleware,
 		),
 	)

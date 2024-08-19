@@ -14,7 +14,7 @@ import (
 func UpdateBook(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Request to update book.")
 
-	var book db.Book
+	var book db.Books
 	err := json.NewDecoder(r.Body).Decode(&book)
 	if err != nil {
 		slog.Error("Can't decode body for updatebook", logger.Extra(map[string]any{
@@ -22,6 +22,15 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 			"payload": book,
 		}))
 		utils.SendError(w, http.StatusBadRequest, err.Error(), book)
+		return
+	}
+
+	if err := utils.Validator(book); err != nil {
+		slog.Error("Failed to validate new book data", logger.Extra(map[string]any{
+			"error":   err.Error(),
+			"payload": book,
+		}))
+		utils.SendError(w, http.StatusExpectationFailed, err.Error(), err)
 		return
 	}
 
@@ -36,13 +45,13 @@ func UpdateBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	book, err = db.Update(id, &book)
+	updatedBook, err := db.GetBookRepo().Update(id, &book)
 	if err != nil {
 		slog.Error("Can't update book", logger.Extra(map[string]any{
 			"error":   err.Error(),
-			"payload": book,
+			"payload": updatedBook,
 		}))
-		utils.SendError(w, http.StatusInternalServerError, err.Error(), book)
+		utils.SendError(w, http.StatusInternalServerError, err.Error(), updatedBook)
 		return
 
 	}

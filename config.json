@@ -2,6 +2,7 @@
     "mode" : "debug",
     "service_name": "api",
     "http_port": 8090,
+    "jwt_secret_key":"thisisthesecretkey",
     "db": {
         "read": {
             "host": "localhost",
@@ -21,5 +22,6 @@
             "max_idle_time_in_minute": 60,
             "enable_ssl_mode": false
         }
-    }
+    },
+    "migrations":"migrations"
 }

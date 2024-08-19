@@ -24,7 +24,7 @@ func GetOneBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := db.ReadOneBook(id)
+	user, err := db.GetBookRepo().GetBook(id)
 	if err != nil {
 		slog.Error("Can't get book by id", logger.Extra(map[string]any{
 			"error":   err.Error(),

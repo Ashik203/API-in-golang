@@ -16,7 +16,7 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Path[len("/users/"):]
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		slog.Error("failed to get id for delete book", logger.Extra(map[string]any{
+		slog.Error("failed to convert id", logger.Extra(map[string]any{
 			"error":   err.Error(),
 			"payload": id,
 		}))
@@ -24,16 +24,21 @@ func DeleteBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var book db.Book
-	book, err = db.Delete(id)
-	if err != nil {
-		slog.Error("Can't Delete Book", logger.Extra(map[string]any{
-			"error":   err.Error(),
-			"payload": book,
-		}))
-		utils.SendError(w, http.StatusInternalServerError, err.Error(), book)
-		return
-	}
+	resultChan := make(chan *db.Books)
+	errorChan := make(chan error)
 
-	utils.SendData(w, book)
+	go func() {
+		book, err := db.GetBookRepo().Delete(id)
+		if err != nil {
+			errorChan <- err
+		}
+		resultChan <- book
+
+	}()
+	select {
+	case book := <-resultChan:
+		utils.SendData(w, book)
+	case err := <-errorChan:
+		utils.SendError(w, http.StatusInternalServerError, err.Error(), err)
+	}
 }

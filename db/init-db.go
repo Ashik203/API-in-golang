@@ -1,7 +1,11 @@
 package db
 
+import "app/redis"
+
 func InitDB() {
 	ConnectDB()
-	InitRedis()
-	InitQueryBuilder(GetWriteDB())
+	redis.InitRedis()
+	InitQueryBuilder()
+	InitUsersRepo()
+	InitBookRepo()
 }
